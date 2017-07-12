@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+	<head>
+		<title> Six-neck for KAIST </title>
+		<meta charset="utf-8" />
+		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script language='javascript'>
+			var socket = io(':8080/six-neck');
+			socket.on('test success', function(){
+				alert('Server responsed to you!\n(Test success)');
+			});
+			var center = new Point(200, 200);
+			var init = new Array(19);
+			var board = new Array(19);
+			var color = 0;
+			var cnt = 1;
+			for (i=0; i<19; i++){
+				board[i] = new Array(19);
+				init[i] = new Array(19);
+				for (j=0; j<19; j++){
+					if (i == 0){
+						if (j == 0) init[i][j] = 'images/blankul.png';
+						else if (j == 18) init[i][j] = 'images/blankur.png';
+						else init[i][j] = 'images/blanku.png';
+					}
+					else if (i == 18){
+						if (j == 0) init[i][j] = 'images/blankdl.png';
+						else if (j == 18) init[i][j] = 'images/blankdr.png';
+						else init[i][j] = 'images/blankd.png';
+					}
+					else if (j == 0){
+						init[i][j] = 'images/blankl.png';
+					}
+					else if (j == 18){
+						init[i][j] = 'images/blankr.png';
+					}
+					else if ((i-3) % 6 == 0 && (j-3) % 6 == 0){
+						init[i][j] = 'images/blankpt.png';
+					}
+					else {
+						init[i][j] = 'images/blank.png';
+					}
+					board[i][j] = new Image(24, 24);
+					board[i][j].src = init[i][j];
+					board[i][j].id = 'test' + i + '_' + j;
+					board[i][j].xx = i;
+					board[i][j].yy = j;
+					board[i][j].empty = true;
+					board[i][j].style.position = 'absolute';
+					board[i][j].style.left = (center.x + 24*j) + 'px';
+					board[i][j].style.top = (center.y + 24*i) + 'px';
+				}
+			}
+			socket.on('place', function(i, j, turn, prev){
+				if (prev != null){
+					while (prev.length > 0){
+						var pt = prev.pop();
+						if (pt.turn == 0) board[pt.x][pt.y].src = 'images/blackstone.png';
+						else board[pt.x][pt.y].src = 'images/whitestone.png';
+					}
+				}
+				if (turn == 0){
+					board[i][j].src = 'images/blackr.png';
+				}
+				else {
+					board[i][j].src = 'images/whiter.png';
+				}
+				board[i][j].empty = false;
+				cnt--;
+				if (cnt == 0){
+					cnt = 2;
+					color = 1 - color;
+				}
+			});
+			socket.on('reset', function(newboard, newturn, newcnt){
+				for (i=0; i<19; i++){
+					for (j=0; j<19; j++){
+						if (newboard[i][j] == 0){
+							board[i][j].src = 'images/blackstone.png';
+							board[i][j].empty = false;
+						}
+						else if (newboard[i][j] == 1){
+							board[i][j].src = 'images/whitestone.png';
+							board[i][j].empty = false;
+						}
+						else if (newboard[i][j] == 2){
+							board[i][j].src = 'images/blackr.png';
+							board[i][j].empty = false;
+						}
+						else if (newboard[i][j] == 3){
+							board[i][j].src = 'images/whiter.png';
+							board[i][j].empty = false;
+						}
+						else {
+							board[i][j].src = init[i][j];
+							board[i][j].empty = true;
+						}
+					}
+				}
+				color = newturn;
+				cnt = newcnt;
+			});
+			socket.on('win', function(turn){
+				if (turn == 0) alert('Black win!');
+				else alert('White win!');
+			});
+
+			function Point(x, y){
+				this.x = x
+				this.y = y
+				this.top = y + 'px';
+				this.left = x + 'px';
+			}
+		</script>
+		<style type='text/css'>
+		body {
+			width:300px;
+			margin:100px auto;
+		}
+		</style>
+	</head>
+	<body>
+		<h2> Not yet ready... </h2>
+		<div id='sncanvas'> </div>
+		<input type='button' value='Test!!' id='test' />
+		<input type='button' value='Reset' id='reset' />
+		<script language='javascript'>
+		$('#test').on('click', function(){
+			socket.emit('test');
+		});
+		$('#reset').on('click', function(){
+			socket.emit('reset');
+		});
+		var canvas = document.getElementById('sncanvas');
+		for (i=0; i<19; i++){
+			for (j=0; j<19; j++){
+				canvas.appendChild(board[i][j]);
+				$('#test' + i + '_' + j).on('click', function(){
+					socket.emit('place', this.xx, this.yy);
+				});
+				$('#test' + i + '_' + j).on('mouseover', function(){
+					/*
+					if (this.empty){
+						if (color == 0) this.src = 'images/blacko.png';
+						else this.src = 'images/whitestone.png';
+						this.style.opacity = 0.4;
+					}
+					*/
+				});
+				$('#test' + i + '_' + j).on('mouseout', function(){
+					/*
+					if (this.empty){
+						this.src = init[this.xx][this.yy];
+						this.style.opacity = 1;
+					}
+					*/
+				})
+			}
+		}
+		socket.emit('board stat');
+		</script>
+	</body>
+</html>
