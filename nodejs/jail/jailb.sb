@@ -1,5 +1,0 @@
-(version 1)
-(deny default)
-(allow process-exec (subpath "/Users/joonhyungshin/nodejs/jail"))
-(allow file-read* 
- (subpath "/usr"))
