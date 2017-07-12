@@ -463,6 +463,7 @@ function board_redo(){
 		cnt = 2;
 		turn = 1 - turn;
 	}
+	end = (cur == hist_end);
 	gio.emit('restore', cur == hist_end);
 }
 
