@@ -41,6 +41,10 @@ var aiturn = -1;		/* AI turn. */
 var aitimeout = null;	/* AI time limit. */
 var aicompiling = false;	/* AI compiling time. */
 
+/* AI compilation. */
+var bcompile_err_msg = '';
+var wcompile_err_msg = '';
+
 /* AI settings. */
 var timeLimit = 7;
 
@@ -108,20 +112,20 @@ app.post('/uploadb', uploadb.single('aibfile'), function(req, res){
 	else {
 		aibcompiling = true;
 		console.log('upload request');
-		var gcc = spawn('g++', [jailpath + 'aib.cc', '-o', jailpath + 'aib', '-O2', '-std=c++14']);
-		var err_msg = '';
+		var gcc = spawn('g++', [jailpath + 'aib.cc', '-o', jailpath + 'aib', '-O2', '-std=c++14', '-static']);
+		bcompile_err_msg = '';
 		gcc.on('exit', function(code){
 			if (code == 0){
 				gio.emit('notice', 'Black AI: Compilation successfull.');
 			}
 			else {
 				gio.emit('notice', 'Black AI: Compilation error.');
-				console.log('Compilation error message:\n' + err_msg);
+				console.log('Compilation error message:\n' + bcompile_err_msg);
 			}
 			aibcompiling = false;
 		});
 		gcc.stderr.on('data', function(data){
-			err_msg += data;
+			bcompile_err_msg += data;
 		});
 	}
 	res.end('done');
@@ -137,20 +141,20 @@ app.post('/uploadw', uploadw.single('aiwfile'), function(req, res){
 	else {
 		aiwcompiling = true;
 		console.log('upload request');
-		var gcc = spawn('g++', [jailpath + 'aiw.cc', '-o', jailpath + 'aiw', '-O2', '-std=c++14']);
-		var err_msg = '';
+		var gcc = spawn('g++', [jailpath + 'aiw.cc', '-o', jailpath + 'aiw', '-O2', '-std=c++14', '-static']);
+		wcompile_err_msg = '';
 		gcc.on('exit', function(code){
 			if (code == 0){
 				gio.emit('notice', 'White AI: Compilation successfull.');
 			}
 			else {
 				gio.emit('notice', 'White AI: Compilation error.');
-				console.log('Compilation error message:\n' + err_msg);
+				console.log('Compilation error message:\n' + wcompile_err_msg);
 			}
 			aiwcompiling = false;
 		});
 		gcc.stderr.on('data', function(data){
-			err_msg += data;
+			wcompile_err_msg += data;
 		});
 	}
 	res.end('done');
@@ -199,7 +203,7 @@ gio.on('connection', function(socket){
 		else if (opt > 0){
 			if (opt % 2 == 1){
 				aiblack = true;
-				aibproc = spawn(jailpath + 'aib');
+				aibproc = spawn(jailpath + 'sandbox', [jailpath + 'aib']);
 				aib = readline.createInterface({
 					input: aibproc.stdout,
 					terminal: false
@@ -229,6 +233,7 @@ gio.on('connection', function(socket){
 
 				aibproc.on('exit', function(code){
 					if (aiblack){
+						console.log('Black AI exited with code ' + code);
 						if (code != 0) runtime_error(0);
 						else closeAI(0);
 					}
@@ -248,7 +253,7 @@ gio.on('connection', function(socket){
 			}
 			if (opt > 1){
 				aiwhite = true;
-				aiwproc = spawn(jailpath + 'aiw');
+				aiwproc = spawn(jailpath + 'sandbox', [jailpath + 'aiw']);
 				aiw = readline.createInterface({
 					input: aiwproc.stdout,
 					terminal: false
@@ -387,6 +392,12 @@ gio.on('connection', function(socket){
 				else {
 					socket.emit('notice', err_msg);
 				}
+				break;
+				case '/bcerr':
+				socket.emit('alert', bcompile_err_msg);
+				break;
+				case '/wcerr':
+				socket.emit('alert', wcompile_err_msg);
 				break;
 				default:
 				socket.emit('notice', 'Unknown command.');

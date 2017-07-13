@@ -17,6 +17,8 @@ void syscall_init() {
 	syscall_cnt[__NR_read] = -1;
 	syscall_cnt[__NR_write] = -1;
 	syscall_cnt[__NR_fstat] = -1;
+	syscall_cnt[__NR_mmap] = -1;
+	syscall_cnt[__NR_munmap] = -1;
 	syscall_cnt[__NR_brk] = -1;
 	syscall_cnt[__NR_access] = 2;
 	syscall_cnt[__NR_execve] = 1;
@@ -45,7 +47,7 @@ int watch_AI() {
 			}
 		}
 		ptrace(PTRACE_GETREGS, pid, NULL, &reg);
-		if (reg.orig_rax > 512LL) {
+		if (reg.orig_rax >= 512ULL) {
 			fprintf(stderr, "Reported syscall number: %lld\n", reg.orig_rax);
 		} else {
 			if (!syscall_cnt[reg.orig_rax]) {
@@ -79,7 +81,6 @@ void run_AI(const char *filename) {
 
 void kill_AI(int signum) {
 	kill(pid, SIGKILL);
-	_exit(1);
 }
 
 int main(int argc, char **argv) {
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
 	syscall_init();
 	pid = fork();
 	if (pid) {
-		freopen("sandbox.log", "w", stdout);
+		freopen("jail/jail-3000/sandbox.log", "w", stdout);
 		signal(SIGTERM, kill_AI);
 		puts("Sandbox starts");
 		return watch_AI(pid);
