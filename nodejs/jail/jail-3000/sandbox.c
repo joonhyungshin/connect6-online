@@ -65,7 +65,7 @@ int watch_AI() {
 	return 0;
 }
 
-void run_AI(const char *filename) {
+void run_AI(char **argv) {
 	struct rlimit filelimit;
 	filelimit.rlim_cur = 2;
 	filelimit.rlim_max = 2;
@@ -75,7 +75,7 @@ void run_AI(const char *filename) {
 	setrlimit(RLIMIT_NOFILE, &filelimit);
 	setrlimit(RLIMIT_AS, &memorylimit);
 	ptrace(PTRACE_TRACEME, 0, NULL, NULL);
-	execl(filename, filename, NULL);
+	execv(argv[0], argv);
 	_exit(1);
 }
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	syscall_init();
 	pid = fork();
 	if (!pid) {
-		run_AI(argv[1]);
+		run_AI(argv + 1);
 	} else if (~pid) {
 		freopen("jail/jail-3000/sandbox.log", "w", stdout);
 		struct sigaction act;

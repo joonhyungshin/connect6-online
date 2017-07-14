@@ -169,7 +169,7 @@
 						board[i][j].src = '/images/block.png';
 						board[i][j].block = true;
 						board[i][j].empty = false;
-			//			preview[i][j].style.visibility = 'hidden';
+						preview[i][j].style.visibility = 'hidden';
 						blockcnt++;
 					}
 					else {
@@ -196,7 +196,7 @@
 					else {
 						board[i][j].src = '/images/whiter.png';
 					}
-				//	preview[i][j].style.visibility = 'hidden';
+					preview[i][j].style.visibility = 'hidden';
 					board[i][j].empty = false;
 					if (redo){
 						cur++;
@@ -490,9 +490,9 @@
 					}
 				});
 				$('#test' + i + '_' + j).on('mouseout', function(){
-				//	if (this.empty){
+					if (this.empty){
 						preview[this.xx][this.yy].style.visibility = 'hidden';
-				//	}
+					}
 				});
 			}
 		}
@@ -641,9 +641,10 @@
 			else if (handle == 'cubelover') rating = 'nutella';
 			else if (handle == 'tourist') rating = 'nutella';
 			else if (handle == 'Petr') rating = 'nutella';
-			else if (handle == 'tncks0121') rating = 'red';
-			else if (handle == 'ainta') rating = 'nutella';
-			else if (handle == 'appa') rating = 'purple';
+			else if (handle == 'ainta') rating = 'red';
+			else if (handle == 'gauss148') rating = 'blue';
+			else if (handle == 'gs12117') rating = 'red';
+			else if (handle == 'dotorya') rating = 'red';
 			else if (handle == 'MikeMirzayanov') rating = 'black';
 			if (rating == null){
 				return handle;
