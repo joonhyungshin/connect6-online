@@ -90,13 +90,22 @@ int main(int argc, char **argv) {
 	}
 	syscall_init();
 	pid = fork();
-	if (pid) {
+	if (!pid) {
+		run_AI(argv[1]);
+	} else if (~pid) {
 		freopen("jail/jail-3000/sandbox.log", "w", stdout);
-		signal(SIGTERM, kill_AI);
+		struct sigaction act;
+		act.sa_handler = kill_AI;
+		sigemptyset(&act.sa_mask);
+		act.sa_flags = 0;
+		if (sigaction(SIGTERM, &act, NULL) == -1) {
+			printf("Sigaction error: Kill signal will directly sent to the parent.\n");
+		}
 		puts("Sandbox starts");
 		return watch_AI(pid);
 	} else {
-		run_AI(argv[1]);
+		perror("fork");
+		return 1;
 	}
 	return 0;
 }
