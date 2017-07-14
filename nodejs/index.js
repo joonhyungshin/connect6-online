@@ -550,7 +550,7 @@ function board_place(i, j){
 		}
 		end = true;
 	}
-	else if (cur == 19 * 19){
+	else if (cur + block_sz == 19 * 19){
 		gio.emit('tie');
 		if (aiblack){
 			closeAI(0);
@@ -591,25 +591,32 @@ function init_board(){
 }
 
 function board_reset(){
-	var i;
-	for (i=0; i<19; i++){
-		for (j=0; j<19; j++){
-			board[i][j] = -1;
+	var i, j;
+	if (blockmode){
+		for (i=0; i<block_sz; i++){
+			board[blocklist[i].x][blocklist[i].y] = -1;
 		}
+		block_sz = 0;
 	}
-	turn = 0;
-	start = true;
-	end = false;
-	cnt = 1;
-	block_sz = 0;
-	hist_sz = 0;
-	cur = 0;
-	hist_end = -1;
-	if (aiblack){
-		closeAI(0);
-	}
-	if (aiwhite){
-		closeAI(1);
+	else {
+		for (i=0; i<19; i++){
+			for (j=0; j<19; j++){
+				if (board[i][j] != 2) board[i][j] = -1;
+			}
+		}
+		turn = 0;
+		start = true;
+		end = false;
+		cnt = 1;
+		hist_sz = 0;
+		cur = 0;
+		hist_end = -1;
+		if (aiblack){
+			closeAI(0);
+		}
+		if (aiwhite){
+			closeAI(1);
+		}
 	}
 }
 

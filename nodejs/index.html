@@ -77,6 +77,7 @@
 					board[i][j].id = 'test' + i + '_' + j;
 					board[i][j].xx = i;
 					board[i][j].yy = j;
+					board[i][j].block = false;
 					board[i][j].empty = true;
 					board[i][j].style.position = 'absolute';
 					board[i][j].style.left = (center.x + 24*j) + 'px';
@@ -135,30 +136,45 @@
 				ingame = !end;
 			});
 			socket.on('reset', function(){
-				for (i=0; i<19; i++){
-					for (j=0; j<19; j++){
-						board[i][j].src = init[i][j];
-						board[i][j].empty = true;
+				if (blockmode){
+					for (i=0; i<19; i++){
+						for (j=0; j<19; j++){
+							board[i][j].src = init[i][j];
+							board[i][j].block = false;
+							board[i][j].empty = true;
+						}
 					}
+					blockcnt = 0;
 				}
-				color = 0;
-				cnt = 1;
-				ingame = true;
-				blockcnt = 0;
-				hist_sz = 0;
-				cur = 0;
+				else {
+					for (i=0; i<19; i++){
+						for (j=0; j<19; j++){
+							if (!board[i][j].block){
+								board[i][j].src = init[i][j];
+								board[i][j].empty = true;
+							}
+						}
+					}
+					color = 0;
+					cnt = 1;
+					ingame = true;
+					hist_sz = 0;
+					cur = 0;
+				}
 			});
 
 			function boardPlace(i, j, redo){
 				if (blockmode){
 					if (board[i][j].empty){
 						board[i][j].src = '/images/block.png';
+						board[i][j].block = true;
 						board[i][j].empty = false;
 			//			preview[i][j].style.visibility = 'hidden';
 						blockcnt++;
 					}
 					else {
 						board[i][j].src = init[i][j];
+						board[i][j].block = false;
 						board[i][j].empty = true;
 						blockcnt--;
 					}
@@ -273,6 +289,12 @@
 			<input type='button' value='▶︎▶︎' id='redo2' />
 			<input type='button' value='Reset' id='reset' />
 			<input type='button' value='Block' id='block' />
+			<select id='blocknum'>
+				<option value='2'>2</option>
+				<option value='4'>4</option>
+				<option value='6'>6</option>
+			</select>
+			<input type='button' value='Random!' id='random' />
 			<input type='button' value='Launch AI' id='launch' />
 			<form id='aibupload' action='/uploadb' method='post' enctype='multipart/form-data'>
 				<label> <input type='checkbox' name='aib' id='aiblack' /> Black AI </label>
@@ -376,6 +398,17 @@
 		$('#reset').on('click', function(){
 			socket.emit('reset');
 		});
+		$('#random').on('click', function(){
+			if (!blockmode){
+				alert('This button is for setting blocks.');
+			}
+			else if (blockcnt > 0){
+				alert('First reset the blocks to use this.');
+			}
+			else {
+				alert('This button is not yet ready.\nSorry for inconvenience.');
+			}
+		})
 		$('#block').on('click', function(){
 			if (blockmode){
 				if (blockcnt % 2 != 0){
@@ -502,6 +535,7 @@
 			for (i=0; i<blockcnt; i++){
 				var x = blocklist[i].x;
 				var y = blocklist[i].y;
+				board[x][y].block = true;
 				board[x][y].empty = false;
 				board[x][y].src = '/images/block.png';
 			}
