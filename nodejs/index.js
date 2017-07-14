@@ -33,6 +33,9 @@ var rl = readline.createInterface({
   output: process.stdout
 });
 
+/* Block setting mode. */
+var blockmode = false;
+
 /* Outdated features. */
 var ai = null;			/* Input stream from AI. */
 var aiproc = null;		/* Child process executing AI. */
@@ -65,9 +68,12 @@ var aiwcompiling = false;
 var turn = 0;		/* 0: Black, 1: White */
 var end = false;
 var cnt = 1;		/* 2 stones per turn except first */
-var boardcnt = 0;
+var boardcnt = 0;	/* Deprecated */
 var board = new Array(19);		/* Six-neck array */
 init_board();
+
+var blocklist = new Array(6);	/* Block list */
+var block_sz = 0;
 
 var hist = new Array(361);				/* History. */
 var hist_sz = 0;
@@ -186,120 +192,136 @@ gio.on('connection', function(socket){
 	var username = userid < 10000 ? 'Guest_' + padNumber(userid) : 'Guest_' + userid;
 	var user = register(socket.id, username);
 	console.log('connection from ' + user.name);
-	socket.emit('init', hist, hist_sz, cur, user.name, end);
+	socket.emit('init', aiblack, aiwhite, blockmode, blocklist, block_sz, hist, hist_sz, cur, user.name, end);
 	gio.emit('notice', user.name + ' joined.');
 	gio.emit('users', userlistToArray());
 
+	socket.on('block', function(){
+		if (!aiblack && !aiwhite && cur == 0){
+			blockmode = true;
+			gio.emit('block mode');
+		}
+	});
+
+	socket.on('block done', function(){
+		if (block_sz % 2 == 0 && blockmode){
+			blockmode = false;
+			gio.emit('game mode');
+		}
+	});
+
 	socket.on('ailaunch', function(opt){
-		if (aiblack || aiwhite){
-			socket.emit('alert', 'AI is already launched.');
-		}
-		else if (((opt % 2 == 1) && aibcompiling) || ((opt > 1) && aiwcompiling)){
-			socket.emit('alert', 'AI is being compiled.');
-		}
-		else if (boardcnt > 0){
-			socket.emit('alert', 'Before running AI, please reset the board.');
-		}
-		else if (opt > 0){
-			if (opt % 2 == 1){
-				aiblack = true;
-				aibproc = spawn(jailpath + 'sandbox', [jailpath + 'aib']);
-				aib = readline.createInterface({
-					input: aibproc.stdout,
-					terminal: false
-				});
-				aib.on('line', function(line){
-					if (aiblack){
-						var coord = line.match(/\d+/g);
-						if (turn == 1 || coord == null || coord.length != 2){
-							invalid_output(0);
-						}
-						else {
-							var i = parseInt(coord[0]);
-							var j = parseInt(coord[1]);
-							if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
+		if (!blockmode && !aiblack && !aiwhite && cur == 0){
+			if (((opt % 2 == 1) && aibcompiling) || ((opt > 1) && aiwcompiling)){
+				socket.emit('alert', 'AI is being compiled.');
+			}
+			else if (opt > 0){
+				if (opt % 2 == 1){
+					aiblack = true;
+					aibproc = spawn(jailpath + 'sandbox', [jailpath + 'aib']);
+					aib = readline.createInterface({
+						input: aibproc.stdout,
+						terminal: false
+					});
+					aib.on('line', function(line){
+						if (aiblack){
+							var coord = line.match(/\d+/g);
+							if (turn == 1 || coord == null || coord.length != 2){
 								invalid_output(0);
 							}
-							else if (!end){
-								board_place(i, j);
-								if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
+							else {
+								var i = parseInt(coord[0]);
+								var j = parseInt(coord[1]);
+								if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
+									invalid_output(0);
+								}
+								else if (!end){
+									board_place(i, j);
+									if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
+								}
 							}
 						}
-					}
-				});
+					});
 
-				aibproc.stdin.write('0\n');
-				aibtimeout = setTimeout(timelimit, 1000 * timeLimit, 0);
+					aibproc.stdin.write(block_sz + '\n');
+					for (i=0; i<block_sz; i++){
+						aibproc.stdin.write(blocklist[i].x + ' ' + blocklist[i].y + '\n');
+					}
+					aibproc.stdin.write('0\n');
+					aibtimeout = setTimeout(timelimit, 1000 * timeLimit, 0);
 
-				aibproc.on('exit', function(code){
-					if (aiblack){
-						console.log('Black AI exited with code ' + code);
-						if (code != 0) runtime_error(0);
-						else closeAI(0);
-					}
-				});
-				aibproc.on('error', function(err){
-					if (aiblack){
-						console.log('ERROR: error occurred executing AI.');
-						execution_error(0);
-					}
-				});
-				aibproc.stderr.on('data', function(data){
-					console.log('' + data);
-				});
-				aibproc.stdin.on('error', function(err){
-					console.log('WARNING: The process\' stdin is closed!');
-				});
-			}
-			if (opt > 1){
-				aiwhite = true;
-				aiwproc = spawn(jailpath + 'sandbox', [jailpath + 'aiw']);
-				aiw = readline.createInterface({
-					input: aiwproc.stdout,
-					terminal: false
-				});
-				aiw.on('line', function(line){
-					if (aiwhite){
-						var coord = line.match(/\d+/g);
-						if (turn == 0 || coord == null || coord.length != 2){
-							invalid_output(1);
+					aibproc.on('exit', function(code){
+						if (aiblack){
+							console.log('Black AI exited with code ' + code);
+							if (code != 0) runtime_error(0);
+							else closeAI(0);
 						}
-						else {
-							var i = parseInt(coord[0]);
-							var j = parseInt(coord[1]);
-							if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
+					});
+					aibproc.on('error', function(err){
+						if (aiblack){
+							console.log('ERROR: error occurred executing AI.');
+							execution_error(0);
+						}
+					});
+					aibproc.stderr.on('data', function(data){
+						console.log('' + data);
+					});
+					aibproc.stdin.on('error', function(err){
+						console.log('WARNING: The process\' stdin is closed!');
+					});
+				}
+				if (opt > 1){
+					aiwhite = true;
+					aiwproc = spawn(jailpath + 'sandbox', [jailpath + 'aiw']);
+					aiw = readline.createInterface({
+						input: aiwproc.stdout,
+						terminal: false
+					});
+					aiw.on('line', function(line){
+						if (aiwhite){
+							var coord = line.match(/\d+/g);
+							if (turn == 0 || coord == null || coord.length != 2){
 								invalid_output(1);
 							}
-							else if (!end){
-								board_place(i, j);
-								if (aiblack) aibproc.stdin.write(i + ' ' + j + '\n');
+							else {
+								var i = parseInt(coord[0]);
+								var j = parseInt(coord[1]);
+								if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
+									invalid_output(1);
+								}
+								else if (!end){
+									board_place(i, j);
+									if (aiblack) aibproc.stdin.write(i + ' ' + j + '\n');
+								}
 							}
 						}
-					}
-				});
+					});
 
-				aiwproc.stdin.write('1\n');
+					aiwproc.stdin.write(block_sz + '\n');
+					for (i=0; i<block_sz; i++){
+						aiwproc.stdin.write(blocklist[i].x + ' ' + blocklist[i].y + '\n');
+					}
+					aiwproc.stdin.write('1\n');
 
-				aiwproc.on('exit', function(code){
-					if (aiwhite){
-						if (code != 0) runtime_error(1);
-						else closeAI(1);
-					}
-				});
-				aiwproc.on('error', function(err){
-					if (aiwhite){
-						console.log('ERROR: error occurred executing AI.');
-						execution_error(1);
-					}
-				});
-				aiwproc.stderr.on('data', function(data){
-					console.log('' + data);
-				});
-				aiwproc.stdin.on('error', function(err){
-					console.log('WARNING: The process\' stdin is closed!');
-				});
-			}
-			if (opt > 0){
+					aiwproc.on('exit', function(code){
+						if (aiwhite){
+							if (code != 0) runtime_error(1);
+							else closeAI(1);
+						}
+					});
+					aiwproc.on('error', function(err){
+						if (aiwhite){
+							console.log('ERROR: error occurred executing AI.');
+							execution_error(1);
+						}
+					});
+					aiwproc.stderr.on('data', function(data){
+						console.log('' + data);
+					});
+					aiwproc.stdin.on('error', function(err){
+						console.log('WARNING: The process\' stdin is closed!');
+					});
+				}
 				gio.emit('aiaccept', opt);
 			}
 		}
@@ -318,7 +340,12 @@ gio.on('connection', function(socket){
 	});
 
 	socket.on('place', function(i, j){
-		if (!end && i < 19 && j < 19 && board[i][j] == -1){
+		if (blockmode){
+			if (i >= 0 && i < 19 && j >= 0 && j < 19){
+				board_block(i, j);
+			}
+		}
+		else if (!end && i >= 0 && i < 19 && j >= 0 && j < 19 && board[i][j] == -1){
 			if (turn == 0 && !aiblack){
 				board_place(i, j);
 				if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
@@ -331,7 +358,7 @@ gio.on('connection', function(socket){
 	});
 
 	socket.on('redo', function(redocnt){
-		if (cur < hist_sz){
+		if (!blockmode && !aiblack && !aiwhite && cur < hist_sz){
 			console.log('redo request');
 			while (cur < hist_sz && redocnt > 0){
 				board_redo();
@@ -341,7 +368,7 @@ gio.on('connection', function(socket){
 	});
 
 	socket.on('undo', function(undocnt){
-		if (!aiblack && !aiwhite && cur > 0){
+		if (!blockmode && !aiblack && !aiwhite && cur > 0){
 			console.log('undo request');
 			while (cur > 0 && undocnt > 0){
 				board_undo();
@@ -462,12 +489,10 @@ function board_undo(){
 		turn = 1 - turn;
 	}
 	cnt++;
-	boardcnt--;
 	gio.emit('rollback');
 }
 
 function board_redo(){
-	boardcnt++;
 	var pt = hist[cur++];
 	cnt--;
 	if (cnt == 0){
@@ -478,10 +503,30 @@ function board_redo(){
 	gio.emit('restore', cur == hist_end);
 }
 
+function board_block(i, j){
+	console.log('blocked (' + i + ', ' + j + ').');
+	if (board[i][j] == -1 && block_sz < 6){
+		blocklist[block_sz++] = new Point(i, j);
+		board[i][j] = 2;
+	}
+	else {
+		/* Delete */
+		var idx, it;
+		for (idx=0; idx<block_sz; idx++){
+			if (blocklist[idx].x == i && blocklist[idx].y == j) break;
+		}
+		for (it=idx; it<block_sz-1; it++){
+			blocklist[it] = blocklist[it+1];
+		}
+		block_sz--;
+		board[i][j] = -1;
+	}
+	gio.emit('place', i, j);
+}
+
 function board_place(i, j){
 	if (turn == 0) console.log('black locate on (' + i + ', ' + j + ').');
 	else console.log('white locate on (' + i + ', ' + j + ').');
-	boardcnt++;
 	board[i][j] = turn;
 	hist[cur++] = new Point(i, j);
 	hist_sz = cur;
@@ -505,7 +550,7 @@ function board_place(i, j){
 		}
 		end = true;
 	}
-	else if (boardcnt == 19 * 19){
+	else if (cur == 19 * 19){
 		gio.emit('tie');
 		if (aiblack){
 			closeAI(0);
@@ -556,11 +601,10 @@ function board_reset(){
 	start = true;
 	end = false;
 	cnt = 1;
-	hist = new Array(361);
+	block_sz = 0;
 	hist_sz = 0;
 	cur = 0;
 	hist_end = -1;
-	boardcnt = 0;
 	if (aiblack){
 		closeAI(0);
 	}

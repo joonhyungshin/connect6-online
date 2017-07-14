@@ -39,6 +39,8 @@
 			var ingame = true;
 			var aiblack = false;
 			var aiwhite = false;
+			var blockmode = false;	/* Block setting mode */
+			var blockcnt = 0;
 			var myname = '';
 			var hist = null;		/* Not initialized */
 			var hist_sz = 0;
@@ -93,6 +95,14 @@
 					preview[i][j].style.pointerEvents = 'none';
 				}
 			}
+			socket.on('block mode', function(){
+				blockmode = true;
+				$('#block').val('Done');
+			});
+			socket.on('game mode', function(){
+				blockmode = false;
+				$('#block').val('Block');
+			})
 			socket.on('place', function(i, j){
 				boardPlace(i, j, false);
 			});
@@ -134,41 +144,56 @@
 				color = 0;
 				cnt = 1;
 				ingame = true;
-				hist = [];
+				blockcnt = 0;
 				hist_sz = 0;
 				cur = 0;
 			});
 
 			function boardPlace(i, j, redo){
-				if (cnt == 2){
-					var pt = hist[cur - 1];
-					if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
-					else board[pt.x][pt.y].src = '/images/blackstone.png';
-					if (cur > 1){
-						pt = hist[cur - 2];
-						if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
-						else board[pt.x][pt.y].src = '/images/blackstone.png';
+				if (blockmode){
+					if (board[i][j].empty){
+						board[i][j].src = '/images/block.png';
+						board[i][j].empty = false;
+			//			preview[i][j].style.visibility = 'hidden';
+						blockcnt++;
+					}
+					else {
+						board[i][j].src = init[i][j];
+						board[i][j].empty = true;
+						blockcnt--;
 					}
 				}
-				if (color == 0){
-					board[i][j].src = '/images/blackr.png';
-				}
 				else {
-					board[i][j].src = '/images/whiter.png';
-				}
-				preview[i][j].style.visibility = 'hidden';
-				board[i][j].empty = false;
-				if (redo){
-					cur++;
-				}
-				else {
-					hist[cur++] = new Point(i, j);
-					hist_sz = cur;
-				}
-				cnt--;
-				if (cnt == 0){
-					cnt = 2;
-					color = 1 - color;
+					if (cnt == 2){
+						var pt = hist[cur - 1];
+						if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
+						else board[pt.x][pt.y].src = '/images/blackstone.png';
+						if (cur > 1){
+							pt = hist[cur - 2];
+							if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
+							else board[pt.x][pt.y].src = '/images/blackstone.png';
+						}
+					}
+					if (color == 0){
+						board[i][j].src = '/images/blackr.png';
+					}
+					else {
+						board[i][j].src = '/images/whiter.png';
+					}
+				//	preview[i][j].style.visibility = 'hidden';
+					board[i][j].empty = false;
+					if (redo){
+						cur++;
+					}
+					else {
+						hist[cur++] = new Point(i, j);
+						hist_sz = cur;
+					}
+					cnt--;
+					if (cnt == 0){
+						cnt = 2;
+						color = 1 - color;
+					}
 				}
 			}
 
@@ -222,6 +247,10 @@
 			white-space:nowrap;
 			float:right;
 		}
+		label {
+			width:100px;
+			display:inline-block;
+		}
 		input#msg {
 			width:85%;
 			margin-left:1%;
@@ -243,15 +272,16 @@
 			<input type='button' value='▶︎' id='redo' />
 			<input type='button' value='▶︎▶︎' id='redo2' />
 			<input type='button' value='Reset' id='reset' />
-			<input type='checkbox' name='aib' id='aiblack' /> Black AI
-			<input type='checkbox' name='aiw' id='aiwhite' /> White AI
-			<input type='button' value='Launch' id='launch' />
+			<input type='button' value='Block' id='block' />
+			<input type='button' value='Launch AI' id='launch' />
 			<form id='aibupload' action='/uploadb' method='post' enctype='multipart/form-data'>
+				<label> <input type='checkbox' name='aib' id='aiblack' /> Black AI </label>
 				<input type='file' name='aibfile' name='uploadFile' required />
 				<input type='submit' name='uploadb' value='Submit' />
 				<input type='button' id='killb' value='Kill' />
 			</form>
 			<form id='aiwupload' action='/uploadw' method='post' enctype='multipart/form-data'>
+				<label> <input type='checkbox' name='aiw' id='aiwhite' /> White AI </label>
 				<input type='file' name='aiwfile' name='uploadFile' required />
 				<input type='submit' name='uploadw' value='Submit' />
 				<input type='button' id='killw' value='Kill' />
@@ -292,18 +322,29 @@
 		</div>
 		<script language='javascript'>
 		$('#launch').on('click', function(){
-			var opt = 0;
-			if (document.getElementById('aiblack').checked){
-				opt += 1;
+			if (blockmode){
+				alert('Please finish the block setting.');
 			}
-			if (document.getElementById('aiwhite').checked) {
-				opt += 2;
+			else if (aiblack || aiwhite){
+				alert('AI is already launched.');
 			}
-			if (opt == 0){
-				alert('At least one of AIs should be checked.');
+			else if (cur > 0){
+				alert('Before running AI, please reset the board.');
 			}
 			else {
-				socket.emit('ailaunch', opt);
+				var opt = 0;
+				if (document.getElementById('aiblack').checked){
+					opt += 1;
+				}
+				if (document.getElementById('aiwhite').checked){
+					opt += 2;
+				}
+				if (opt == 0){
+					alert('At least one of AIs should be checked.');
+				}
+				else {
+					socket.emit('ailaunch', opt);
+				}
 			}
 		});
 		$('#undo').on('click', function(){
@@ -335,6 +376,27 @@
 		$('#reset').on('click', function(){
 			socket.emit('reset');
 		});
+		$('#block').on('click', function(){
+			if (blockmode){
+				if (blockcnt % 2 != 0){
+					alert('Please set the even number of blocks.');
+				}
+				else {
+					socket.emit('block done');
+				}
+			}
+			else {
+				if (aiblack || aiwhite){
+					alert('You cannot set new blocks if AI is launched.');
+				}
+				else if (cur > 0){
+					alert('Before setting new blocks, please reset the board.');
+				}
+				else {
+					socket.emit('block');
+				}
+			}
+		})
 		$('#nickname').submit(function(){
 			var name = $('#username').val();
 			if (/\s/.test(name)){
@@ -371,25 +433,40 @@
 				canvas.appendChild(board[i][j]);
 				canvas.appendChild(preview[i][j]);
 				$('#test' + i + '_' + j).on('click', function(){
-					if (this.empty) socket.emit('place', this.xx, this.yy);
+					if (blockmode){
+						if (blockcnt == 6 && this.empty){
+							alert('Maximum number of blocks exceeded.');
+						}
+						else {
+							socket.emit('place', this.xx, this.yy);
+						}
+					}
+					else if (this.empty) socket.emit('place', this.xx, this.yy);
 				});
 				$('#test' + i + '_' + j).on('mouseover', function(){
 					if (this.empty && ingame && ((!aiblack && color == 0) || (!aiwhite && color == 1))){
 						var prev = preview[this.xx][this.yy];
-						if (color == 0) prev.src = '/images/blackstone.png';
-						else prev.src = '/images/whitestone.png';
+						if (blockmode){
+							prev.src = '/images/block.png';
+						}
+						else {
+							if (color == 0) prev.src = '/images/blackstone.png';
+							else prev.src = '/images/whitestone.png';
+						}
 						prev.style.visibility = 'visible';
 					}
 				});
 				$('#test' + i + '_' + j).on('mouseout', function(){
-					if (this.empty){
+				//	if (this.empty){
 						preview[this.xx][this.yy].style.visibility = 'hidden';
-					}
+				//	}
 				});
 			}
 		}
-		socket.on('init', function(newhist, newsz, newcur, name, end){
+		socket.on('init', function(aib, aiw, mode, blocklist, blocksz, newhist, newsz, newcur, name, end){
 			var i;
+			aiblack = aib;
+			aiwhite = aiw;
 			hist_sz = newsz;
 			cur = newcur;
 			cnt = 1;
@@ -416,6 +493,17 @@
 						color = 1 - color;
 					}
 				}
+			}
+			blockmode = mode;
+			blockcnt = blocksz;
+			if (blockmode){
+				$('#block').val('Done');
+			}
+			for (i=0; i<blockcnt; i++){
+				var x = blocklist[i].x;
+				var y = blocklist[i].y;
+				board[x][y].empty = false;
+				board[x][y].src = '/images/block.png';
 			}
 			ingame = !end;
 			$('#username').val(name);
