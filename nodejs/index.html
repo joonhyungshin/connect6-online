@@ -3,10 +3,10 @@
 	<head>
 		<title> Connect-6 for KAIST </title>
 		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="/index.css" />
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> 
-    	<script src="http://malsup.github.com/jquery.form.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> 
 		<script language='javascript'>
 			var init_title = 'Connect-6 for KAIST';
 			var note_title = '* Connect-6 for KAIST';
@@ -28,7 +28,7 @@
 				window.onblur = pageBlur;
 			}
 
-			var socket = io(':#port#/six-neck');
+			var socket = io('/six-neck');
 
 			var center = new Point(0, 0);
 			var init = new Array(19);
@@ -218,69 +218,11 @@
 				this.y = y
 			}
 		</script>
-		<style type='text/css'>
-		#gameboard {
-			margin-left:5%;
-			width:456px;
-			height:600px;
-			float:left;
-		}
-		#sncanvas {
-			border:1px solid;
-			position:relative;
-			margin-bottom:10px;
-			width:100%;
-			height:456px;
-		}
-		#chatdiv {
-			margin-bottom:10px;
-			margin-right:10%;
-			width:40%;
-			height:100%;
-			float:right;
-		}
-		#chatstat {
-			font-size:16px;
-			font-family:'돋움';
-			margin-left:1%;
-			margin-right:1%;
-			width:100%;
-			height:400px;
-		}
-		#chat {
-			overflow:scroll;
-			word-wrap:break-word;
-			border:1px solid;
-			width:75%;
-			height:100%;
-			float:left;
-		}
-		#user {
-			overflow:scroll;
-			border:1px solid;
-			width:23%;
-			height:100%;
-			white-space:nowrap;
-			float:right;
-		}
-		label {
-			width:100px;
-			display:inline-block;
-		}
-		input#msg {
-			width:85%;
-			margin-left:1%;
-			padding:5px;
-		}
-		button#send {
-			margin-left:1%;
-			width:10%;
-			padding:6px;
-		}
-		</style>
 	</head>
 	<body>
-		<h2> Connect-6 Gameboard by KAIST </h2>
+		<div id='header'>
+			<h1> Connect-6 Gameboard </h1>
+		</div>
 		<div id='gameboard'>
 			<div id='sncanvas'> </div>
 			<input type='button', value='◀︎︎◀︎︎' id='undo2' />
@@ -329,18 +271,25 @@
 			</select>
 			-->
 		</div>
-		<br />
 		<div id='chatdiv'>
+			<div id='chatstat'>
+				<div id='chat'></div>
+				<div id='user'></div>
+			</div>
 			<form id='chatform' action=''>
-				<div id='chatstat'>
-					<div id='chat'></div>
-					<div id='user'></div>
-				</div>
-				<input id='msg' maxlength=100 type='text' autocomplete='off'><button id='send'> Send </button>
+				<input id='msg' maxlength=100 type='text' autocomplete='off' />
+				<button id='send'> Send </button>
 			</form>
 			<form id='nickname' action=''>
-				<input id='username' maxlength=20 type='text' value='' /><button id='change'> Change </button>
+				<input id='username' maxlength=20 type='text' value='' />
+				<button id='change'> Change </button>
 			</form>
+		</div>
+		<div id='footer'>
+			Admin: Joonhyung Shin (<a href='https://www.kaist.ac.kr/'>KAIST</a>) <br />
+			E-mail: tonyshin@kaist.ac.kr, admin@connect6kaist.ml <br />
+			Github: <a href='https://github.com/kuratowski'> https://github.com/kuratowski</a> <br />
+			Homepage: <a href='https://mathsci.kaist.ac.kr/~joonhyung'> https://mathsci.kaist.ac.kr/~joonhyung </a> (Not yet prepared)
 		</div>
 		<script language='javascript'>
 		$('#launch').on('click', function(){
@@ -630,6 +579,8 @@
 		}
 
 		function CodeForces(handle){
+			return '<b>' + handle + '</b>';
+			/*
 			var rating = null;
 			if (handle == 'koosaga') rating = 'red';
 			else if (handle == 'wwiiiii') rating = 'purple';
@@ -655,6 +606,7 @@
 			else {
 				return '<font color=\'' + rating + '\'><b>' + handle + '</b></font>';
 			}
+			*/
 		}
 		</script>
 	</body>

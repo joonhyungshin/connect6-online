@@ -4,8 +4,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var multer = require('multer');
 var fs = require('fs');
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var https = require('http').Server(app);
+var io = require('socket.io')(https);
 var gio = io.of('/six-neck');
 var spawn = require('child_process').spawn;
 
@@ -91,6 +91,13 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }));
 app.use(bodyParser.json());
+app.use(function(req, res, next) {
+    if((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
+        res.redirect('https://www.' + req.get('Host') + req.url);
+    }
+    else
+        next();
+});
 
 app.get('/', function(req, res){
 	res.redirect('/six-neck');
@@ -106,6 +113,10 @@ app.get('/six-neck', function(req, res){
 app.get('/images/:id', function(req, res){
 	var src = req.params.id;
 	res.sendFile(__dirname + '/images/' + src);
+});
+
+app.get('/index.css', function(req, res){
+	res.sendFile(__dirname + '/index.css');
 });
 
 app.post('/uploadb', uploadb.single('aibfile'), function(req, res){
@@ -183,7 +194,7 @@ rl.on('line', function(input){
 	}
 });
 
-http.listen(port, function(){
+https.listen(port, function(){
 	console.log('listening on *:' + port);
 });
 
