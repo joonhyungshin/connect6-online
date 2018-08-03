@@ -91,6 +91,7 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }));
 app.use(bodyParser.json());
+/*
 app.use(function(req, res, next) {
     if((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
         res.redirect('https://www.' + req.get('Host') + req.url);
@@ -98,6 +99,7 @@ app.use(function(req, res, next) {
     else
         next();
 });
+*/
 
 app.get('/', function(req, res){
 	res.redirect('/six-neck');
