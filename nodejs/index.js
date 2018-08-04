@@ -72,7 +72,7 @@ var boardcnt = 0;	/* Deprecated */
 var board = new Array(19);		/* Six-neck array */
 init_board();
 
-var blocklist = new Array(6);	/* Block list */
+var blocklist = new Array(10);	/* Block list */
 var block_sz = 0;
 
 var hist = new Array(361);				/* History. */
@@ -536,7 +536,7 @@ function board_redo(){
 
 function board_block(i, j){
 	console.log('blocked (' + i + ', ' + j + ').');
-	if (board[i][j] == -1 && block_sz < 6){
+	if (board[i][j] == -1 && block_sz < 10){
 		blocklist[block_sz++] = new Point(i, j);
 		board[i][j] = 2;
 	}

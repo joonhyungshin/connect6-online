@@ -244,6 +244,7 @@
 				<option value='2'>2</option>
 				<option value='4'>4</option>
 				<option value='6'>6</option>
+				<option value='10'>10</option>
 			</select>
 			<input type='button' value='Random!' id='random' />
 			<input type='button' value='Launch AI' id='launch' /> <br />
@@ -290,9 +291,9 @@
 		</div>
 		<div id='footer'>
 			Admin: Joonhyung Shin (<a href='https://www.kaist.ac.kr/'>KAIST</a>) <br />
-			E-mail: tonyshin@kaist.ac.kr, admin@connect6kaist.ml <br />
+			E-mail: tonyshin@kaist.ac.kr <br />
 			Github: <a href='https://github.com/kuratowski'> https://github.com/kuratowski</a> <br />
-			Homepage: <a href='https://mathsci.kaist.ac.kr/~joonhyung'> https://mathsci.kaist.ac.kr/~joonhyung </a> (Not yet prepared)
+			Homepage: <a href='https://mathsci.kaist.ac.kr/~joonhyung'> https://mathsci.kaist.ac.kr/~joonhyung </a>
 		</div>
 		<script language='javascript'>
 		$('#launch').on('click', function(){
@@ -419,7 +420,7 @@
 				canvas.appendChild(preview[i][j]);
 				$('#test' + i + '_' + j).on('click', function(){
 					if (blockmode){
-						if (blockcnt == 6 && this.empty){
+						if (blockcnt == 10 && this.empty){
 							alert('Maximum number of blocks exceeded.');
 						}
 						else {
