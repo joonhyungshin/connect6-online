@@ -121,6 +121,14 @@ app.get('/index.css', function(req, res){
 	res.sendFile(__dirname + '/index.css');
 });
 
+app.get('/aib.html', function(req, res){
+	res.sendFile(__dirname + '/aib.html');
+});
+
+app.get('/aiw.html', function(req, res){
+	res.sendFile(__dirname + '/aiw.html');
+});
+
 app.post('/uploadb', uploadb.single('aibfile'), function(req, res){
 	if (aiblack){
 		gio.emit('notice', 'Black AI is still running.');
