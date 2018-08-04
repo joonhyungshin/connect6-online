@@ -217,6 +217,15 @@
 				this.x = x
 				this.y = y
 			}
+
+			function uploadAI(ai){
+				if (ai == 0){
+					window.open('aib.html', 'aib', 'width=300,height=100');
+				}
+				else {
+					window.open('aiw.html', 'aiw', 'width=300,height=100');
+				}
+			}
 		</script>
 	</head>
 	<body>
@@ -237,19 +246,13 @@
 				<option value='6'>6</option>
 			</select>
 			<input type='button' value='Random!' id='random' />
-			<input type='button' value='Launch AI' id='launch' />
-			<form id='aibupload' action='/uploadb' method='post' enctype='multipart/form-data'>
-				<label> <input type='checkbox' name='aib' id='aiblack' /> Black AI </label>
-				<input type='file' name='aibfile' name='uploadFile' required />
-				<input type='submit' name='uploadb' value='Submit' />
-				<input type='button' id='killb' value='Kill' />
-			</form>
-			<form id='aiwupload' action='/uploadw' method='post' enctype='multipart/form-data'>
-				<label> <input type='checkbox' name='aiw' id='aiwhite' /> White AI </label>
-				<input type='file' name='aiwfile' name='uploadFile' required />
-				<input type='submit' name='uploadw' value='Submit' />
-				<input type='button' id='killw' value='Kill' />
-			</form>
+			<input type='button' value='Launch AI' id='launch' /> <br />
+			<label> <input type='checkbox' name='aib' id='aiblack' /> Black AI </label>
+			<input type='button' name='uploadb' value='Upload' onClick='uploadAI(0);' />
+			<input type='button' id='killb' value='Kill' /> <br />
+			<label> <input type='checkbox' name='aiw' id='aiwhite' /> White AI </label>
+			<input type='button' name='uploadw' value='Upload' onClick='uploadAI(1);' />
+			<input type='button' id='killw' value='Kill' />
 			<!--
 			<select id='aitime'>
 				<option value='1'>1s</option>

@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 	if (!pid) {
 		run_AI(argv + 1);
 	} else if (~pid) {
-		freopen("jail/jail-80/sandbox.log", "w", stdout);
+		freopen("jail/jail-8080/sandbox.log", "w", stdout);
 		struct sigaction act;
 		act.sa_handler = kill_AI;
 		sigemptyset(&act.sa_mask);

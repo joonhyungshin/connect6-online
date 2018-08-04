@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+	<title> AI upload </title>
+	<meta charset="utf-8" />
+	<script language='javascript'>
+		function upload() {
+			document.forms['uploadb'].submit();
+			window.close();
+		}
+	</script>
+</head>
+<body>
+	<form action='/uploadb' method='post' enctype='multipart/form-data' name='uploadb'>
+		<input type='file' name='aibfile' required />
+		<input type='button' name='upload' value='Submit' onClick='upload();' />
+	</form>
+</body>
+</html>
