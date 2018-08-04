@@ -238,19 +238,23 @@ gio.on('connection', function(socket){
 					});
 					aib.on('line', function(line){
 						if (aiblack){
-							var coord = line.match(/\d+/g);
-							if (turn == 1 || coord == null || coord.length != 2){
+							var coord = line.split(/[ ,]+/);
+							if (coord == null || (coord.length != 2 && coord.length != 4)){
 								invalid_output(0);
 							}
 							else {
-								var i = parseInt(coord[0]);
-								var j = parseInt(coord[1]);
-								if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
-									invalid_output(0);
-								}
-								else if (!end){
-									board_place(i, j);
-									if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
+								var tok;
+								for (tok = 0; tok < coord.length; tok += 2){
+									var i = parseInt(coord[tok]);
+									var j = parseInt(coord[tok + 1]);
+									if (turn == 1 || isNaN(i) || isNaN(j) || !valid(i, j)){
+										invalid_output(0);
+										break;
+									}
+									else if (!end){
+										board_place(i, j);
+										if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
+									}
 								}
 							}
 						}
@@ -260,6 +264,7 @@ gio.on('connection', function(socket){
 					for (i=0; i<block_sz; i++){
 						aibproc.stdin.write(blocklist[i].x + ' ' + blocklist[i].y + '\n');
 					}
+					aibproc.stdin.write(timeLimit + '\n');
 					aibproc.stdin.write('0\n');
 					aibtimeout = setTimeout(timelimit, 1000 * timeLimit, 0);
 
@@ -292,19 +297,23 @@ gio.on('connection', function(socket){
 					});
 					aiw.on('line', function(line){
 						if (aiwhite){
-							var coord = line.match(/\d+/g);
-							if (turn == 0 || coord == null || coord.length != 2){
+							var coord = line.split(/[ ,]+/);
+							if (coord == null || (coord.length != 2 && coord.length != 4)){
 								invalid_output(1);
 							}
 							else {
-								var i = parseInt(coord[0]);
-								var j = parseInt(coord[1]);
-								if (i < 0 || i >= 19 || j < 0 || j >= 19 || board[i][j] != -1){
-									invalid_output(1);
-								}
-								else if (!end){
-									board_place(i, j);
-									if (aiblack) aibproc.stdin.write(i + ' ' + j + '\n');
+								var tok;
+								for (tok = 0; tok < coord.length; tok += 2){
+									var i = parseInt(coord[tok]);
+									var j = parseInt(coord[tok + 1]);
+									if (turn == 0 || isNaN(i) || isNaN(j) || !valid(i, j)){
+										invalid_output(1);
+										break;
+									}
+									else if (!end){
+										board_place(i, j);
+										if (aiblack) aibproc.stdin.write(i + ' ' + j + '\n');
+									}
 								}
 							}
 						}
@@ -314,6 +323,7 @@ gio.on('connection', function(socket){
 					for (i=0; i<block_sz; i++){
 						aiwproc.stdin.write(blocklist[i].x + ' ' + blocklist[i].y + '\n');
 					}
+					aiwproc.stdin.write(timeLimit + '\n');
 					aiwproc.stdin.write('1\n');
 
 					aiwproc.on('exit', function(code){
@@ -358,7 +368,7 @@ gio.on('connection', function(socket){
 				board_block(i, j);
 			}
 		}
-		else if (!end && i >= 0 && i < 19 && j >= 0 && j < 19 && board[i][j] == -1){
+		else if (!end && valid(i, j)){
 			if (turn == 0 && !aiblack){
 				board_place(i, j);
 				if (aiwhite) aiwproc.stdin.write(i + ' ' + j + '\n');
@@ -550,7 +560,7 @@ function board_place(i, j){
 		turn = 1 - turn;
 	}
 	gio.emit('place', i, j);
-	if (six_check(i, j, prev_turn)){
+	if (consecutive(i, j, prev_turn, 6)){
 		hist_end = cur;
 		if (prev_turn == 0) console.log('black win');
 		else console.log('white win');
@@ -633,7 +643,11 @@ function board_reset(){
 	}
 }
 
-function six_check(x, y, turn){
+function valid(x, y){
+	return x >= 0 && x < 19 && y >= 0 && y < 19 && board[x][y] == -1 && !consecutive(x, y, turn, 7);
+}
+
+function consecutive(x, y, turn, num){
 	/* Check up and down */
 	var i = x, j = y, k;
 	var line = 0;
@@ -645,7 +659,7 @@ function six_check(x, y, turn){
 		if (board[i][j] != turn) break;
 		line++;
 	}
-	if (line == 5) return true;
+	if (line >= num - 1) return true;
 	line = 0;
 	i = x;
 	j = y;
@@ -658,7 +672,7 @@ function six_check(x, y, turn){
 		if (board[i][j] != turn) break;
 		line++;
 	}
-	if (line == 5) return true;
+	if (line >= num - 1) return true;
 	line = 0;
 	i = x;
 	j = y;
@@ -671,7 +685,7 @@ function six_check(x, y, turn){
 		if (board[i-k][j-k] != turn) break;
 		line++;
 	}
-	if (line == 5) return true;
+	if (line >= num - 1) return true;
 	line = 0;
 	/* Check y = -x */
 	for (k=1; i+k<19 && j-k>=0; k++){
@@ -682,7 +696,7 @@ function six_check(x, y, turn){
 		if (board[i-k][j+k] != turn) break;
 		line++;
 	}
-	if (line == 5) return true;
+	if (line >= num - 1) return true;
 	return false;
 }
 
