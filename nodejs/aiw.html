@@ -3,17 +3,11 @@
 <head>
 	<title> AI upload </title>
 	<meta charset="utf-8" />
-	<script language='javascript'>
-		function upload() {
-			document.forms['uploadw'].submit();
-			window.close();
-		}
-	</script>
 </head>
 <body>
 	<form action='/uploadw' method='post' enctype='multipart/form-data' name='uploadw'>
 		<input type='file' name='aibfile' required />
-		<input type='button' name='upload' value='Submit' onClick='upload();' />
+		<input type='submit' name='upload' value='Submit' />
 	</form>
 </body>
 </html>

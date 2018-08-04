@@ -155,7 +155,7 @@ app.post('/uploadb', uploadb.single('aibfile'), function(req, res){
 			bcompile_err_msg += data;
 		});
 	}
-	res.end('done');
+	res.end('<body onload=\'window.close();\'></body>');
 });
 
 app.post('/uploadw', uploadw.single('aiwfile'), function(req, res){
@@ -184,7 +184,7 @@ app.post('/uploadw', uploadw.single('aiwfile'), function(req, res){
 			wcompile_err_msg += data;
 		});
 	}
-	res.end('done');
+	res.end('<body onload=\'window.close();\'></body>');
 });
 
 app.all('*', function(req, res){
