@@ -660,11 +660,11 @@ function consecutive(x, y, turn, num){
 	var i = x, j = y, k;
 	var line = 0;
 	for (i=x-1; i>=0; i--){
-		if (board[i][j] != turn) break;
+		if (board[i][j] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	for (i=x+1; i<19; i++){
-		if (board[i][j] != turn) break;
+		if (board[i][j] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
@@ -673,11 +673,11 @@ function consecutive(x, y, turn, num){
 	j = y;
 	/* Check left and right */
 	for (j=y-1; j>=0; j--){
-		if (board[i][j] != turn) break;
+		if (board[i][j] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	for (j=y+1; j<19; j++){
-		if (board[i][j] != turn) break;
+		if (board[i][j] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
@@ -686,22 +686,22 @@ function consecutive(x, y, turn, num){
 	j = y;
 	/* Check y = x */
 	for (k=1; i+k<19 && j+k<19; k++){
-		if (board[i+k][j+k] != turn) break;
+		if (board[i+k][j+k] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	for (k=1; i-k>=0 && j-k>=0; k++){
-		if (board[i-k][j-k] != turn) break;
+		if (board[i-k][j-k] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
 	line = 0;
 	/* Check y = -x */
 	for (k=1; i+k<19 && j-k>=0; k++){
-		if (board[i+k][j-k] != turn) break;
+		if (board[i+k][j-k] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	for (k=1; i-k>=0 && j+k<19; k++){
-		if (board[i-k][j+k] != turn) break;
+		if (board[i-k][j+k] != turn && board[i][j] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
