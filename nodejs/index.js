@@ -686,22 +686,22 @@ function consecutive(x, y, turn, num){
 	j = y;
 	/* Check y = x */
 	for (k=1; i+k<19 && j+k<19; k++){
-		if (board[i+k][j+k] != turn && board[i][j] != 2) break;
+		if (board[i+k][j+k] != turn && board[i+k][j+k] != 2) break;
 		line++;
 	}
 	for (k=1; i-k>=0 && j-k>=0; k++){
-		if (board[i-k][j-k] != turn && board[i][j] != 2) break;
+		if (board[i-k][j-k] != turn && board[i-k][j-k] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
 	line = 0;
 	/* Check y = -x */
 	for (k=1; i+k<19 && j-k>=0; k++){
-		if (board[i+k][j-k] != turn && board[i][j] != 2) break;
+		if (board[i+k][j-k] != turn && board[i+k][j-k] != 2) break;
 		line++;
 	}
 	for (k=1; i-k>=0 && j+k<19; k++){
-		if (board[i-k][j+k] != turn && board[i][j] != 2) break;
+		if (board[i-k][j+k] != turn && board[i-k][j+k] != 2) break;
 		line++;
 	}
 	if (line >= num - 1) return true;
