@@ -568,7 +568,20 @@ function board_place(i, j){
 		turn = 1 - turn;
 	}
 	gio.emit('place', i, j);
-	if (consecutive(i, j, prev_turn, 6)){
+	if (consecutive(i, j, prev_turn, 7)){
+		hist_end = cur;
+		if (prev_turn == 0) console.log('white win');
+		else console.log('black win');
+		gio.emit('win', 1 - prev_turn);
+		if (aiblack){
+			closeAI(0);
+		}
+		if (aiwhite){
+			closeAI(1);
+		}
+		end = true;
+	}
+	else if (consecutive(i, j, prev_turn, 6)){
 		hist_end = cur;
 		if (prev_turn == 0) console.log('black win');
 		else console.log('white win');
@@ -652,7 +665,7 @@ function board_reset(){
 }
 
 function valid(x, y){
-	return x >= 0 && x < 19 && y >= 0 && y < 19 && board[x][y] == -1 && !consecutive(x, y, turn, 7);
+	return x >= 0 && x < 19 && y >= 0 && y < 19 && board[x][y] == -1;
 }
 
 function consecutive(x, y, turn, num){
