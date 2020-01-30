@@ -14,8 +14,12 @@ int mr(int i){ return rand()%i; }
 int main(){
 	srand(unsigned(time(NULL)));
 	memset(board, -1, sizeof(board));
-	int u, v, c;
-	scanf("%d", &c);
+	int u, v, c, b;
+	scanf("%d", &b);
+	for (int i = 0; i < b; i++) {
+		scanf("%*d");
+	}
+	scanf("%*d%d", &c);
 	if (c == 0){
 		board[9][9] = c;
 		printf("9 9\n");

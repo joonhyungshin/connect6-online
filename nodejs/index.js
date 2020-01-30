@@ -102,14 +102,13 @@ app.use(function(req, res, next) {
 */
 
 app.get('/', function(req, res){
-	res.redirect('/six-neck');
-});
-
-app.get('/six-neck', function(req, res){
+	res.sendFile(__dirname + '/index.html');
+	/*
 	var data = fs.readFileSync(__dirname + '/index.html', 'utf8');
 	if (data){
 		res.send(data.replace('#port#', port));
 	}
+	*/
 });
 
 app.get('/images/:id', function(req, res){

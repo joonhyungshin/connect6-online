@@ -3,9 +3,9 @@
 	<head>
 		<title> Connect-6 for KAIST </title>
 		<meta charset="utf-8" />
-		<link rel="stylesheet" type="text/css" href="/index.css" />
+		<link rel="stylesheet" type="text/css" href="index.css" />
 		<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-		<script src="/socket.io/socket.io.js"></script>
+		<script src="socket.io/socket.io.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script> 
 		<script language='javascript'>
 			var init_title = 'Connect-6 for KAIST';
@@ -28,7 +28,9 @@
 				window.onblur = pageBlur;
 			}
 
-			var socket = io(':#port#/six-neck');
+			var socket = io('/six-neck', {
+				path: window.location.pathname + 'socket.io'
+			});
 
 			var center = new Point(0, 0);
 			var init = new Array(19);
@@ -51,26 +53,26 @@
 				preview[i] = new Array(19);
 				for (j=0; j<19; j++){
 					if (i == 0){
-						if (j == 0) init[i][j] = '/images/blankul.png';
-						else if (j == 18) init[i][j] = '/images/blankur.png';
-						else init[i][j] = '/images/blanku.png';
+						if (j == 0) init[i][j] = 'images/blankul.png';
+						else if (j == 18) init[i][j] = 'images/blankur.png';
+						else init[i][j] = 'images/blanku.png';
 					}
 					else if (i == 18){
-						if (j == 0) init[i][j] = '/images/blankdl.png';
-						else if (j == 18) init[i][j] = '/images/blankdr.png';
-						else init[i][j] = '/images/blankd.png';
+						if (j == 0) init[i][j] = 'images/blankdl.png';
+						else if (j == 18) init[i][j] = 'images/blankdr.png';
+						else init[i][j] = 'images/blankd.png';
 					}
 					else if (j == 0){
-						init[i][j] = '/images/blankl.png';
+						init[i][j] = 'images/blankl.png';
 					}
 					else if (j == 18){
-						init[i][j] = '/images/blankr.png';
+						init[i][j] = 'images/blankr.png';
 					}
 					else if ((i-3) % 6 == 0 && (j-3) % 6 == 0){
-						init[i][j] = '/images/blankpt.png';
+						init[i][j] = 'images/blankpt.png';
 					}
 					else {
-						init[i][j] = '/images/blank.png';
+						init[i][j] = 'images/blank.png';
 					}
 					board[i][j] = new Image(24, 24);
 					board[i][j].src = init[i][j];
@@ -118,12 +120,12 @@
 				board[pt.x][pt.y].empty = true;
 				if (cnt == 1){
 					pt = hist[cur - 1];
-					if (color == 0) board[pt.x][pt.y].src = '/images/whiter.png';
-					else board[pt.x][pt.y].src = '/images/blackr.png';
+					if (color == 0) board[pt.x][pt.y].src = 'images/whiter.png';
+					else board[pt.x][pt.y].src = 'images/blackr.png';
 					if (cur > 1){
 						pt = hist[cur - 2];
-						if (color == 0) board[pt.x][pt.y].src = '/images/whiter.png';
-						else board[pt.x][pt.y].src = '/images/blackr.png';
+						if (color == 0) board[pt.x][pt.y].src = 'images/whiter.png';
+						else board[pt.x][pt.y].src = 'images/blackr.png';
 					}
 				}
 				if (cnt == 2){
@@ -166,7 +168,7 @@
 			function boardPlace(i, j, redo){
 				if (blockmode){
 					if (board[i][j].empty){
-						board[i][j].src = '/images/block.png';
+						board[i][j].src = 'images/block.png';
 						board[i][j].block = true;
 						board[i][j].empty = false;
 						preview[i][j].style.visibility = 'hidden';
@@ -182,19 +184,19 @@
 				else {
 					if (cnt == 2){
 						var pt = hist[cur - 1];
-						if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
-						else board[pt.x][pt.y].src = '/images/blackstone.png';
+						if (color == 0) board[pt.x][pt.y].src = 'images/whitestone.png';
+						else board[pt.x][pt.y].src = 'images/blackstone.png';
 						if (cur > 1){
 							pt = hist[cur - 2];
-							if (color == 0) board[pt.x][pt.y].src = '/images/whitestone.png';
-							else board[pt.x][pt.y].src = '/images/blackstone.png';
+							if (color == 0) board[pt.x][pt.y].src = 'images/whitestone.png';
+							else board[pt.x][pt.y].src = 'images/blackstone.png';
 						}
 					}
 					if (color == 0){
-						board[i][j].src = '/images/blackr.png';
+						board[i][j].src = 'images/blackr.png';
 					}
 					else {
-						board[i][j].src = '/images/whiter.png';
+						board[i][j].src = 'images/whiter.png';
 					}
 					preview[i][j].style.visibility = 'hidden';
 					board[i][j].empty = false;
@@ -433,11 +435,11 @@
 					if (this.empty && ingame && ((!aiblack && color == 0) || (!aiwhite && color == 1))){
 						var prev = preview[this.xx][this.yy];
 						if (blockmode){
-							prev.src = '/images/block.png';
+							prev.src = 'images/block.png';
 						}
 						else {
-							if (color == 0) prev.src = '/images/blackstone.png';
-							else prev.src = '/images/whitestone.png';
+							if (color == 0) prev.src = 'images/blackstone.png';
+							else prev.src = 'images/whitestone.png';
 						}
 						prev.style.visibility = 'visible';
 					}
@@ -465,13 +467,13 @@
 				if (i < cur){
 					if ((cur % 2 == 1 && i == cur - 2) || i == cur - 1){
 						board[x][y].empty = false;
-						if (color == 0) board[x][y].src = '/images/blackr.png';
-						else board[x][y].src = '/images/whiter.png';
+						if (color == 0) board[x][y].src = 'images/blackr.png';
+						else board[x][y].src = 'images/whiter.png';
 					}
 					else {
 						board[x][y].empty = false;
-						if (color == 0) board[x][y].src = '/images/blackstone.png';
-						else board[x][y].src = '/images/whitestone.png';
+						if (color == 0) board[x][y].src = 'images/blackstone.png';
+						else board[x][y].src = 'images/whitestone.png';
 					}
 					cnt--;
 					if (cnt == 0){
@@ -490,7 +492,7 @@
 				var y = blocklist[i].y;
 				board[x][y].block = true;
 				board[x][y].empty = false;
-				board[x][y].src = '/images/block.png';
+				board[x][y].src = 'images/block.png';
 			}
 			ingame = !end;
 			$('#username').val(name);

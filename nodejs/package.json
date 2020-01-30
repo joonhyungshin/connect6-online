@@ -1,0 +1,27 @@
+{
+  "name": "connect6",
+  "version": "1.0.0",
+  "description": "Connect6 Online",
+  "main": "index.js",
+  "dependencies": {
+    "cookie-parser": "^1.4.4",
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "socket.io": "^2.3.0",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joonhyungshin/connect6-online.git"
+  },
+  "author": "Joonhyung Shin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joonhyungshin/connect6-online/issues"
+  },
+  "homepage": "https://github.com/joonhyungshin/connect6-online#readme"
+}
